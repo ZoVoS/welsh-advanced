@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dysgu Cymraeg - Learn Welsh Vocabulary</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Dysgu Cymraeg - Learn Welsh Vocabulary</h1>
+    </header>
+    
+    <main>
+        <div id="start-screen">
+            <div class="settings">
+                <div class="setting">
+                    <label for="category">Choose category:</label>
+                    <select id="category">
+                        {% for category in categories %}
+                            <option value="{{ category.id }}">{{ category.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="setting">
+                    <label for="mode">Choose mode:</label>
+                    <select id="mode">
+                        <option value="image-to-welsh">Image → Welsh Word</option>
+                        <option value="english-to-welsh">English → Welsh Word</option>
+                        <option value="welsh-to-english">Welsh → English Word</option>
+                        <option value="audio-to-welsh">English Audio → Welsh Word</option>
+                        <option value="welsh-audio-to-english">Welsh Audio → English Word</option>
+                        <option value="mixed">Mixed Modal Challenge 🔥</option>
+                    </select>
+                </div>
+                
+                <div class="setting">
+                    <label for="difficulty">Difficulty (options: <span id="difficulty-value">3</span>):</label>
+                    <input type="range" id="difficulty" min="3" max="9" value="3" class="slider">
+                </div>
+                
+                <div class="setting">
+                    <label for="questions">Number of questions: <span id="questions-value">10</span></label>
+                    <input type="range" id="questions" min="10" max="100" value="10" class="slider">
+                </div>
+                
+                <div class="setting checkbox-setting">
+                    <input type="checkbox" id="use-primary-words" checked>
+                    <label for="use-primary-words">Use only primary word forms</label>
+                </div>
+                
+                <div class="setting checkbox-setting">
+                    <input type="checkbox" id="use-primary-media">
+                    <label for="use-primary-media">Use only primary media files</label>
+                </div>
+            </div>
+            
+            <button id="start-button" disabled>Loading...</button>
+            
+            <div class="admin-link">
+                <a href="{{ url_for('admin_login') }}">Admin Panel</a>
+            </div>
+        </div>
+        
+        <div id="game-screen">
+            <div class="score">Question <span id="current-question">1</span>/<span id="total-questions">10</span> | Score: <span id="score">0</span></div>
+            
+            <div class="timer">
+                <div class="timer-display">
+                    Time: <span id="timer">00:00</span>
+                </div>
+            </div>
+            
+            <div class="question">
+                <div class="question-content">
+                    <img id="question-image" class="question-image" src="" alt="" style="display: none;">
+                    <div id="question-text" class="question-text"></div>
+                    <button id="question-audio" class="audio-button" style="display: none;">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                            <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div id="options" class="options"></div>
+            </div>
+        </div>
+        
+        <div id="result-screen">
+            <div class="result">
+                You scored <span id="final-score">0</span> out of <span id="final-total">10</span>!
+            </div>
+            
+            <div class="time-result">
+                Total time: <span id="final-time">00:00</span>
+            </div>
+            
+            <button id="play-again-button">Play Again</button>
+        </div>
+    </main>
+    
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/utils.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/ui.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/game.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

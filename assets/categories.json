@@ -1,0 +1,20 @@
+{
+  "categories": [
+    {
+      "id": "body-parts",
+      "name": "Body Parts"
+    },
+    {
+      "id": "colors",
+      "name": "Colors"
+    },
+    {
+      "id": "animals",
+      "name": "Animals"
+    },
+    {
+      "id": "flags",
+      "name": "Flags"
+    }
+  ]
+}

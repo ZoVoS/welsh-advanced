@@ -1,0 +1,72 @@
+# Asset Directory Structure Example
+
+Here's how you should structure the assets directory for body parts:
+
+```
+assets/
+├── foot/
+│   ├── english.txt      # Multiple English variations
+│   ├── welsh.txt        # Multiple Welsh variations
+│   ├── images/          # Multiple images of feet
+│   │   ├── foot1.jpg
+│   │   └── foot2.jpg
+│   ├── english_audio/   # Multiple English audio files
+│   │   └── foot.mp3
+│   └── welsh_audio/     # Multiple Welsh audio files
+│       └── troed.mp3
+├── head/
+│   ├── english.txt
+│   ├── welsh.txt
+│   ├── images/
+│   ├── english_audio/
+│   └── welsh_audio/
+└── ...
+```
+
+# Sample Content for Text Files
+
+## Example for assets/foot/english.txt:
+
+```
+foot
+a foot
+the foot
+your foot
+which foot
+```
+
+## Example for assets/foot/welsh.txt:
+
+```
+troed
+y droed
+dy droed
+eich troed
+pa droed
+```
+
+## Example for assets/head/english.txt:
+
+```
+head
+the head
+your head
+a head
+```
+
+## Example for assets/head/welsh.txt:
+
+```
+pen
+y pen
+dy ben
+eich pen
+```
+
+# Note on Placeholder Files
+
+For each body part directory, ensure that there are at least:
+- One image file in the images/ folder (.jpg, .png, or .gif)
+- One audio file in each of the audio folders (.mp3 or .wav)
+
+If you don't have actual files to use, placeholders will be used.
