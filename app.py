@@ -18,6 +18,9 @@ CATEGORIES_FILE = os.path.join(ASSETS_DIR, 'categories.json')
 ADMIN_USERNAME = "admin"
 ADMIN_PASSWORD = "welsh_learning_app"
 
+# Site password protection
+SITE_PASSWORD = "12345"  # Change this to your desired password
+
 # Allowed file extensions
 ALLOWED_IMAGE_EXTENSIONS = {'jpg', 'jpeg', 'png', 'gif'}
 ALLOWED_AUDIO_EXTENSIONS = {'mp3', 'wav'}
@@ -241,6 +244,15 @@ def delete_category_directory(category_id):
     categories = [c for c in categories if c['id'] != category_id]
     save_categories(categories)
 
+# Add this decorator function to check for site password
+def site_password_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not request.cookies.get('site_authenticated') == 'true':
+            return redirect(url_for('site_login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
 # Basic security wrapper for admin routes
 def admin_required(f):
     @wraps(f)
@@ -251,19 +263,36 @@ def admin_required(f):
     return decorated_function
 
 # Main App Routes
+@app.route('/login', methods=['GET', 'POST'])
+def site_login():
+    if request.method == 'POST':
+        password = request.form.get('password')
+        
+        if password == SITE_PASSWORD:
+            response = redirect(url_for('index'))
+            response.set_cookie('site_authenticated', 'true')
+            return response
+        else:
+            flash('Incorrect password', 'error')
+    
+    return render_template('site_login.html')
+
 @app.route('/')
+@site_password_required
 def index():
     """Render the main application page"""
     categories = get_categories()
     return render_template('index.html', categories=categories)
 
 @app.route('/api/categories')
+@site_password_required
 def api_get_categories():
     """API endpoint to get all categories"""
     categories = get_categories()
     return jsonify(categories)
 
 @app.route('/api/category/<category_id>/items')
+@site_password_required
 def api_get_items(category_id):
     """API endpoint to get all items in a category"""
     if not is_valid_category(category_id):

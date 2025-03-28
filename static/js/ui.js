@@ -95,9 +95,16 @@ const UI = {
      * Clear previous question content
      */
     clearQuestion() {
+        // Hide all question elements
         questionImage.style.display = 'none';
         questionText.style.display = 'none';
         questionAudio.style.display = 'none';
+        
+        // Clear their content
+        questionImage.src = '';
+        questionText.textContent = '';
+        
+        // Clear options
         optionsContainer.innerHTML = '';
     },
 
@@ -107,9 +114,32 @@ const UI = {
      * @param {string} altText - Alt text for the image
      */
     showImageQuestion(imageSrc, altText) {
-        questionImage.src = imageSrc;
-        questionImage.alt = altText || '';
-        questionImage.style.display = 'block';
+        // Create a new Image object to preload the image
+        const img = new Image();
+        
+        // Add loading spinner or placeholder while the image loads
+        questionText.textContent = "Loading...";
+        questionText.style.display = 'block';
+        
+        // When the image is loaded, update the UI
+        img.onload = function() {
+            // Hide the loading text
+            questionText.style.display = 'none';
+            
+            // Now set the src and show the image
+            questionImage.src = imageSrc;
+            questionImage.alt = ""; // Empty alt text to avoid giving away the answer
+            questionImage.style.display = 'block';
+        };
+        
+        // If there's an error loading the image
+        img.onerror = function() {
+            questionText.textContent = "Error loading image";
+            questionText.style.display = 'block';
+        };
+        
+        // Start loading the image
+        img.src = imageSrc;
     },
 
     /**

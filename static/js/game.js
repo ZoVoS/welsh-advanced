@@ -20,7 +20,8 @@ const Game = {
         endTime: null,
         timerInterval: null,
         usePrimaryWords: true,  // Default to true
-        usePrimaryMedia: false  // Default to false
+        usePrimaryMedia: false,  // Default to false
+        isAudioPlaying: false   // Flag to prevent double-playing audio
     },
     
     /**
@@ -127,6 +128,7 @@ const Game = {
         this.state.correctAnswer = null;
         this.state.answeredCorrectly = false;
         this.state.gameComplete = false;
+        this.state.isAudioPlaying = false;
         
         // Generate questions
         this.generateQuestions(vocabularyItems);
@@ -167,7 +169,8 @@ const Game = {
             endTime: null,
             timerInterval: null,
             usePrimaryWords: document.getElementById('use-primary-words').checked,
-            usePrimaryMedia: document.getElementById('use-primary-media').checked
+            usePrimaryMedia: document.getElementById('use-primary-media').checked,
+            isAudioPlaying: false
         };
         
         // Update UI
@@ -175,76 +178,80 @@ const Game = {
     },
     
     /**
-     * Generate questions based on game settings
-     * @param {Array} vocabularyItems - Array of vocabulary items to use for the game
-     */
-    generateQuestions(vocabularyItems) {
-        // Reset questions array
-        this.state.questions = [];
-        
-        // Ensure we have enough items
-        const maxQuestions = Math.min(this.state.questionCount, vocabularyItems.length);
-        
-        // Create a copy of the vocabulary items array
-        const availableItems = [...vocabularyItems];
-        
-        // Generate random questions based on count
-        for (let i = 0; i < maxQuestions; i++) {
-            // If we've used all items, reset the available items
-            if (availableItems.length === 0) {
-                availableItems.push(...vocabularyItems);
-            }
-            
-            // Select a random item
-            const randomIndex = Math.floor(Math.random() * availableItems.length);
-            const selectedItem = availableItems.splice(randomIndex, 1)[0];
-            
-            // For mixed mode, generate a random question and answer type for each question
-            if (this.state.mode === 'mixed') {
-                const questionTypes = ['image', 'english-text', 'welsh-text', 'english-audio', 'welsh-audio'];
-                const answerTypes = ['welsh-text', 'english-text', 'image'];
-                
-                // Choose random question type
-                const questionType = questionTypes[Math.floor(Math.random() * questionTypes.length)];
-                
-                // Choose appropriate answer type based on question type
-                let answerType;
-
-                if (questionType === 'image') {
-                    // Image questions should always have Welsh text answers
-                    answerType = 'welsh-text';
-                } else if (questionType === 'english-text') {
-                    // English text questions should have Welsh text or image answers
-                    answerType = Math.random() < 0.7 ? 'welsh-text' : 'image';
-                } else if (questionType === 'english-audio') {
-                    // English audio questions should always have Welsh text answers
-                    answerType = 'welsh-text';
-                } else if (questionType === 'welsh-text') {
-                    // Welsh text questions should have English text or image answers
-                    answerType = Math.random() < 0.7 ? 'english-text' : 'image';
-                } else if (questionType === 'welsh-audio') {
-                    // Welsh audio questions can have English text, Welsh text, or image answers
-                    const randVal = Math.random();
-                    if (randVal < 0.4) {
-                        answerType = 'english-text';
-                    } else if (randVal < 0.7) {
-                        answerType = 'welsh-text';
-                    } else {
-                        answerType = 'image';
-                    }
-                }
-                
-                // Add the question with its types
-                this.state.questions.push({
-                    ...selectedItem,
-                    questionType,
-                    answerType
-                });
+ * Generate questions based on game settings
+ * @param {Array} vocabularyItems - Array of vocabulary items to use for the game
+ */
+generateQuestions(vocabularyItems) {
+    // Reset questions array
+    this.state.questions = [];
+    
+    // Get the requested number of questions
+    const requestedQuestions = this.state.questionCount;
+    
+    // Create a copy of the vocabulary items array
+    let itemPool = [...vocabularyItems];
+    
+    // If we have fewer items than requested questions, we'll need to allow repeats
+    const allowRepeats = vocabularyItems.length < requestedQuestions;
+    
+    // Generate questions until we have enough or run out of unique items
+    for (let i = 0; i < requestedQuestions; i++) {
+        // If we've used all items and we're allowing repeats, reset the pool
+        if (itemPool.length === 0) {
+            if (allowRepeats) {
+                itemPool = [...vocabularyItems];
+                console.log("Refilled item pool to generate more questions");
             } else {
-                // Add standard question
-                this.state.questions.push(selectedItem);
+                console.log("No more unique items available");
+                break; // Stop generating questions if we don't want repeats
             }
         }
+        
+        // Select a random item
+        const randomIndex = Math.floor(Math.random() * itemPool.length);
+        const selectedItem = itemPool.splice(randomIndex, 1)[0];
+        
+        // For mixed mode, generate a random question and answer type for each question
+        if (this.state.mode === 'mixed') {
+            const questionTypes = ['image', 'english-text', 'welsh-text', 'english-audio', 'welsh-audio'];
+            const answerTypes = ['welsh-text', 'english-text', 'image'];
+            
+            // Choose random question type
+            const questionType = questionTypes[Math.floor(Math.random() * questionTypes.length)];
+            
+            // Choose appropriate answer type based on question type
+            let answerType;
+
+            if (questionType === 'image') {
+                // Image questions should always have Welsh text answers
+                answerType = 'welsh-text';
+            } else if (questionType === 'english-text') {
+                // English text questions should have Welsh text or image answers
+                answerType = Math.random() < 0.7 ? 'welsh-text' : 'image';
+            } else if (questionType === 'english-audio') {
+                // English audio questions should always have Welsh text answers
+                answerType = 'welsh-text';
+            } else if (questionType === 'welsh-text') {
+                // Welsh text questions should have English text or image answers
+                answerType = Math.random() < 0.7 ? 'english-text' : 'image';
+            } else if (questionType === 'welsh-audio') {
+                // Welsh audio questions should ONLY have English text answers, NEVER Welsh text or images
+                answerType = 'english-text';
+            }
+            
+            // Add the question with its types
+            this.state.questions.push({
+                ...selectedItem,
+                questionType,
+                answerType
+            });
+        } else {
+            // Add standard question
+            this.state.questions.push(selectedItem);
+        }
+    }
+    
+    console.log(`Generated ${this.state.questions.length} questions from ${vocabularyItems.length} unique items, with repeats ${allowRepeats ? 'allowed' : 'not allowed'}`);
     },
     
     /**
@@ -298,10 +305,14 @@ const Game = {
             
             case 'english-audio':
                 UI.showAudioQuestion(() => this.playQuestionAudio());
+                // Auto-play audio after a short delay
+                setTimeout(() => this.playQuestionAudio(), 300);
                 break;
             
             case 'welsh-audio':
                 UI.showAudioQuestion(() => this.playQuestionAudio());
+                // Auto-play audio after a short delay
+                setTimeout(() => this.playQuestionAudio(), 300);
                 break;
         }
     },
@@ -326,10 +337,14 @@ const Game = {
                 
             case 'audio-to-welsh':
                 UI.showAudioQuestion(() => this.playQuestionAudio());
+                // Auto-play audio after a short delay
+                setTimeout(() => this.playQuestionAudio(), 300);
                 break;
                 
             case 'welsh-audio-to-english':
                 UI.showAudioQuestion(() => this.playQuestionAudio());
+                // Auto-play audio after a short delay
+                setTimeout(() => this.playQuestionAudio(), 300);
                 break;
         }
     },
@@ -489,6 +504,11 @@ const Game = {
      * Play question audio
      */
     playQuestionAudio() {
+        // Prevent multiple simultaneous playbacks
+        if (this.state.isAudioPlaying) {
+            return;
+        }
+        
         // Get the appropriate audio file and play it
         let audioPath;
         
@@ -515,12 +535,27 @@ const Game = {
         // Play the audio if we found a path
         if (audioPath) {
             try {
+                this.state.isAudioPlaying = true;
                 const audio = new Audio(audioPath);
+                
+                // Add event listener to reset the flag when audio ends
+                audio.addEventListener('ended', () => {
+                    this.state.isAudioPlaying = false;
+                });
+                
+                // Add event listener to reset the flag if there's an error
+                audio.addEventListener('error', () => {
+                    console.error('Error playing audio');
+                    this.state.isAudioPlaying = false;
+                });
+                
                 audio.play().catch(err => {
                     console.error('Error playing audio:', err);
+                    this.state.isAudioPlaying = false;
                 });
             } catch (error) {
                 console.error('Error creating audio player:', error);
+                this.state.isAudioPlaying = false;
             }
         }
     }
